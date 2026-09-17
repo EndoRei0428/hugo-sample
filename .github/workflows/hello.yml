@@ -1,0 +1,15 @@
+name: Hello World
+ 
+on:
+  workflow_dispatch:   # 手動でも実行できるようにする設定
+  push:
+    branches:
+      - main           # main ブランチへの push で動く
+ 
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello World!"
+      - uses: actions/checkout@v3   # ソースコードを取得する Action
+      - run: ls -la                 # 好きな Linux コマンド（例）
