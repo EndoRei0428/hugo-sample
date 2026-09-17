@@ -1,0 +1,78 @@
+# ワークフロー名
+name: Deploy Hugo site to Pages
+# ワークフローを実行するタイミング
+on:
+  # main向けのPull Requestが作成・更新されたら実行
+  pull_request:
+    branches:
+      - main
+  # mainにマージ・pushされたら実行
+  push:
+    branches:
+      - main
+  # 手動実行も可能
+  workflow_dispatch:
+
+# GitHub Actionsに与える権限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同時デプロイを管理
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # ==========================================
+  # ① Pull Request時・main更新時にビルド確認
+  # ==========================================
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # リポジトリのコードを取得
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      # Hugoを準備
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: '0.111.3'
+          extended: true
+
+      # Hugoでサイトを生成
+      # Pull Request時にもここまで実行される
+      - name: Build with Hugo
+        run: hugo --minify
+
+      # mainに入ったときだけデプロイ用ファイルを保存
+      # Pull Requestの段階では実行しない
+      - name: Upload artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public
+
+  # ==========================================
+  # ② mainに入ったときだけデプロイ
+  # ==========================================
+  deploy:
+    # Pull Requestでは実行しない
+    # mainへのpush時だけ実行
+    if: github.event_name == 'push'
+    # buildが成功してから実行
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      # GitHub Pagesに公開
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
