@@ -9,7 +9,7 @@ on:
   # mainにマージ・pushされたら実行
   push:
     branches:
-      - main
+      - pullrequest
   # 手動実行も可能
   workflow_dispatch:
 
