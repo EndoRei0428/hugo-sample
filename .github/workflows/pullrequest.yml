@@ -5,7 +5,7 @@ on:
   # main向けのPull Requestが作成・更新されたら実行
   pull_request:
     branches:
-      - main
+      - pullrequest
   # mainにマージ・pushされたら実行
   push:
     branches:
